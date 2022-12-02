@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, re_path, include
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 from swagger.urls import schema_view
 
@@ -24,3 +25,5 @@ urlpatterns = [
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('api/', include('api.urls')),
 ]
+
+urlpatterns += staticfiles_urlpatterns()
