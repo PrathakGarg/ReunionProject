@@ -15,15 +15,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, re_path, include
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.views.static import serve
 
 from swagger.urls import schema_view
+from . import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('swagger/', include('swagger.urls')),
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('api/', include('api.urls')),
+    re_path(r'static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
 ]
-
-urlpatterns += staticfiles_urlpatterns()
