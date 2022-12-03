@@ -46,8 +46,8 @@ class UserSerializer(serializers.ModelSerializer):
 class CreateCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = ['text']
-        extra_kwargs = {'text': {'write_only': True, 'required': True}}
+        fields = ['comment']
+        extra_kwargs = {'comment': {'write_only': True, 'required': True}}
 
     def create(self, validated_data):
         comment = Comment.objects.create(**validated_data)

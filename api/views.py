@@ -1,5 +1,3 @@
-from django.shortcuts import render
-
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view, permission_classes
@@ -16,7 +14,7 @@ from .serializers import (
     CreateCommentSerializer,
 )
 
-from .models import User, Post, Comment
+from .models import User, Post
 
 
 # Create your views here.
@@ -36,12 +34,14 @@ def register(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def follow_user(request: Request, id: int):
+def follow_user(request: Request, id: int = None):
+    if id is None:
+        return Response({'error': 'User id is required'}, status=400)
     user = request.user
     user_to_follow = User.objects.filter(id=id)
 
     if not user_to_follow.exists():
-        return Response({'message': 'User not found'}, status=400)
+        return Response({'message': 'User not found'}, status=404)
 
     user_to_follow = user_to_follow.first()
     if user_to_follow == user:
@@ -56,12 +56,14 @@ def follow_user(request: Request, id: int):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def unfollow_user(request: Request, id: int):
+def unfollow_user(request: Request, id: int = None):
+    if id is None:
+        return Response({'error': 'User id is required'}, status=400)
     user = request.user
     user_to_unfollow = User.objects.filter(id=id)
 
     if not user_to_unfollow.exists():
-        return Response({'message': 'User not found'}, status=400)
+        return Response({'message': 'User not found'}, status=404)
 
     user_to_unfollow = user_to_unfollow.first()
     if user_to_unfollow == user:
@@ -90,37 +92,31 @@ def create_post(request: Request):
 
     if serializer.is_valid():
         serializer.save(user=user)
-        return Response(serializer.data)
+        return Response(serializer.data, status=201)
     return Response({"message": "Post creation failed", "errors": serializer.errors}, status=400)
 
 
 @api_view(['GET', 'DELETE'])
 @permission_classes([IsAuthenticated])
-def get_or_delete_post(request: Request, id: int):
+def get_or_delete_post(request: Request):
+    post = Post.objects.filter(id=id)
+    if not post.exists():
+        return Response({'message': 'Post not found'}, status=404)
+    post = post.first()
+
     if request.method == 'GET':
-        post = Post.objects.filter(id=id)
-
-        if not post.exists():
-            return Response({'message': 'Post not found'}, status=404)
-
-        post = post.first()
         serializer = PostSerializer(post, many=False)
         serializer_data = {
             "id": serializer.data['id'],
             "likes": serializer.data['likes'],
             "comments": len(serializer.data['comments']),
         }
+
         return Response(serializer_data)
     elif request.method == 'DELETE':
         user = request.user
-        post = Post.objects.filter(id=id)
-
-        if not post.exists():
-            return Response({'message': 'Post not found'}, status=404)
-
-        post = post.first()
         if post.user != user:
-            return Response({'message': 'You cannot delete this post'}, status=400)
+            return Response({'message': 'You cannot delete this post'}, status=403)
 
         post.delete()
         return Response({"message": f'Post {post.id} deleted successfully'})
@@ -180,7 +176,7 @@ def comment_post(request: Request, id: int):
 
     if serializer.is_valid():
         comment = serializer.save(user=user, post=post)
-        return Response({"cid": comment.id})
+        return Response({"cid": comment.id}, status=201)
     return Response({"message": "Comment creation failed", "errors": serializer.errors}, status=400)
 
 
