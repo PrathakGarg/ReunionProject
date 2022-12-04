@@ -2,10 +2,11 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
-# Create your models here.
-
+# Custom user model with email as pk
 class User(AbstractUser):
     email = models.EmailField(unique=True)
+
+    # Implemented followers and following as ManyToMany relation of Users
     following = models.ManyToManyField('self', related_name='followers', symmetrical=False, blank=True, null=True)
 
     USERNAME_FIELD = 'email'
@@ -15,6 +16,7 @@ class User(AbstractUser):
         return self.email
 
 
+# Post model connected to User model
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     title = models.CharField(max_length=100)
@@ -27,6 +29,7 @@ class Post(models.Model):
         return self.title
 
 
+# Comment model connected to User and Post models
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')

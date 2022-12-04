@@ -25,5 +25,5 @@ urlpatterns = [
     path('swagger/', include('swagger.urls')),
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('api/', include('api.urls')),
-    re_path(r'static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
+    re_path(r'static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),  # path to static files
 ]

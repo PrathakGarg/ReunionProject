@@ -4,18 +4,20 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User, Post, Comment
 
 
+# Added username in JWT token for easier access in frontend
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
 
         # Add custom claims
-        token['name'] = user.username
+        token['username'] = user.username
         # ...
 
         return token
 
 
+# Register new user
 class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -27,13 +29,14 @@ class CreateUserSerializer(serializers.ModelSerializer):
         return user
 
 
+# Get formatted user details with followers and following count
 class UserSerializer(serializers.ModelSerializer):
     following = serializers.SerializerMethodField()
     followers = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['username', 'following', 'followers']
+        fields = ['id', 'username', 'following', 'followers']
         extra_kwargs = {'following': {'read_only': True}, 'followers': {'read_only': True}}
 
     def get_following(self, obj):
@@ -43,6 +46,7 @@ class UserSerializer(serializers.ModelSerializer):
         return obj.followers.count()
 
 
+# Create and serialize new comment
 class CreateCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
@@ -54,25 +58,20 @@ class CreateCommentSerializer(serializers.ModelSerializer):
         return comment
 
 
+# Get formatted comment
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['user', 'text', 'created_at']
+        fields = ['user', 'comment', 'created_at']
         extra_kwargs = {'user': {'read_only': True}}
 
     def get_user(self, obj):
         return obj.user.username
 
 
-class CreatePostSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Post
-        fields = ['id', 'title', 'desc', 'created_at']
-        extra_kwargs = {'created_at': {'read_only': True}}
-
-
+# Get formatted post with comments
 class PostSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
@@ -80,7 +79,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['id', 'title', 'desc', 'created_at', 'comments', 'likes']
-        extra_kwargs = {'user': {'read_only': True}}
+        extra_kwargs = {'user': {'read_only': True}, 'created_at': {'read_only': True}}
 
     def get_likes(self, obj):
         return obj.likes.count()
