@@ -123,9 +123,10 @@ class PostTestCase(TestCase):
         self.post3 = Post.objects.create(title="Test 3", desc="Description 3", user=self.tester2)
 
     def test_delete_post(self):
+        post_id = self.post1.id
         response = self.client.delete(self.get_or_delete_post_url(self.post1.id), HTTP_AUTHORIZATION=f'Bearer {self.tester1.token}')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data.get('message'), 'Post 1 deleted')
+        self.assertEqual(response.data.get('message'), f'Post {post_id} deleted')
 
         response = self.client.get(self.get_posts_url, HTTP_AUTHORIZATION=f'Bearer {self.tester1.token}')
         self.assertEqual(response.status_code, 200)
